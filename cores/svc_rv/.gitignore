@@ -1,0 +1,10 @@
+/checks/
+/cexdata/
+/testbench.vcd
+/firmware.elf
+/firmware.hex
+/disasm.o
+/disasm.bin
+/disasm.s
+/testbench
+/gtkwave.log
