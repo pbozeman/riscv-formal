@@ -123,6 +123,16 @@ module rvfi_wrapper (
     imem_bus_valid = imem_ren;
   end
 
+  //
+  // Data memory bus interface - NOT IMPLEMENTED
+  //
+  // The RVFI_BUS dmem checker tracks writes via RVFI (rvfi_bus_dmem_check.sv:91)
+  // but constrains reads from raw bus transactions (rvfi_bus_dmem_check.sv:65).
+  // Our pipelined memory makes this timing mismatch - bus reads happen in MEM stage
+  // but RVFI reports in WB stage, and with BRAM latency the data arrives one cycle
+  // after the bus transaction. Would need additional work to align the timing.
+  //
+
 `endif
 
 endmodule
