@@ -1,3 +1,42 @@
+//
+// Configuration via defines (can be overridden via +define+ in .sby files)
+//
+`ifndef SVC_RV_PIPELINED
+  `define SVC_RV_PIPELINED 1
+`endif
+
+`ifndef SVC_RV_FWD_REGFILE
+  `define SVC_RV_FWD_REGFILE 1
+`endif
+
+`ifndef SVC_RV_FWD
+  `define SVC_RV_FWD 1
+`endif
+
+`ifndef SVC_RV_MEM_TYPE
+  `define SVC_RV_MEM_TYPE 0
+`endif
+
+`ifndef SVC_RV_BPRED
+  `define SVC_RV_BPRED 0
+`endif
+
+`ifndef SVC_RV_BTB_ENABLE
+  `define SVC_RV_BTB_ENABLE 0
+`endif
+
+`ifndef SVC_RV_RAS_ENABLE
+  `define SVC_RV_RAS_ENABLE 0
+`endif
+
+`ifndef SVC_RV_EXT_ZMMUL
+  `define SVC_RV_EXT_ZMMUL 0
+`endif
+
+`ifndef SVC_RV_EXT_M
+  `define SVC_RV_EXT_M 0
+`endif
+
 module rvfi_wrapper (
     input wire clock,
     input wire reset,
@@ -33,15 +72,15 @@ module rvfi_wrapper (
       .XLEN       (32),
       .IMEM_AW    (10),
       .DMEM_AW    (10),
-      .PIPELINED  (1),
-      .FWD_REGFILE(1),
-      .FWD        (1),
-      .MEM_TYPE   (0),
-      .BPRED      (0),
-      .BTB_ENABLE (0),
-      .RAS_ENABLE (0),
-      .EXT_ZMMUL  (0),
-      .EXT_M      (0)
+      .PIPELINED  (`SVC_RV_PIPELINED),
+      .FWD_REGFILE(`SVC_RV_FWD_REGFILE),
+      .FWD        (`SVC_RV_FWD),
+      .MEM_TYPE   (`SVC_RV_MEM_TYPE),
+      .BPRED      (`SVC_RV_BPRED),
+      .BTB_ENABLE (`SVC_RV_BTB_ENABLE),
+      .RAS_ENABLE (`SVC_RV_RAS_ENABLE),
+      .EXT_ZMMUL  (`SVC_RV_EXT_ZMMUL),
+      .EXT_M      (`SVC_RV_EXT_M)
   ) dut (
       .clk  (clock),
       .rst_n(!reset),

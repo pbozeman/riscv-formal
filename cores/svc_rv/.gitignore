@@ -1,5 +1,7 @@
 /checks/
+/checks_*/
 /cexdata/
+/checks_*.cfg
 /testbench.vcd
 /firmware.elf
 /firmware.hex

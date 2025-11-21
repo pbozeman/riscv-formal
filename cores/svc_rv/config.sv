@@ -5,12 +5,14 @@
 //
 // ISA
 //
-`define RISCV_FORMAL_RV32I
+// The ISA (rv32i, rv32im, etc.) is specified in the .cfg file [options] section.
+// riscv-formal's genchecks.py automatically defines the appropriate ISA defines
+// (RISCV_FORMAL_RV32I, RISCV_FORMAL_RV32M, etc.) based on that.
+//
 
 //
 // Enable these later when RVFI wiring + checks are ready:
 //
-// `define RISCV_FORMAL_RV32M
 // `define RISCV_FORMAL_RV32C
 
 //
