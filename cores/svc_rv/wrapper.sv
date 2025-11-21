@@ -1,30 +1,8 @@
 module rvfi_wrapper (
     input  wire         clock,
     input  wire         reset,
-
-    output wire         rvfi_valid,
-    output wire [63:0]  rvfi_order,
-    output wire [31:0]  rvfi_insn,
-    output wire [31:0]  rvfi_pc_rdata,
-    output wire [31:0]  rvfi_pc_wdata,
-    output wire [4:0]   rvfi_rs1_addr,
-    output wire [4:0]   rvfi_rs2_addr,
-    output wire [4:0]   rvfi_rd_addr,
-    output wire [31:0]  rvfi_rs1_rdata,
-    output wire [31:0]  rvfi_rs2_rdata,
-    output wire [31:0]  rvfi_rd_wdata,
-    output wire         rvfi_trap,
-    output wire         rvfi_halt,
-    output wire         rvfi_intr,
-    output wire [1:0]   rvfi_mode,
-    output wire [1:0]   rvfi_ixl,
-    output wire         rvfi_mem_valid,
-    output wire         rvfi_mem_instr,
-    output wire [31:0]  rvfi_mem_addr,
-    output wire [3:0]   rvfi_mem_rmask,
-    output wire [3:0]   rvfi_mem_wmask,
-    output wire [31:0]  rvfi_mem_rdata,
-    output wire [31:0]  rvfi_mem_wdata
+    `RVFI_OUTPUTS
+    `RVFI_BUS_OUTPUTS
 );
 
   //
@@ -47,6 +25,9 @@ module rvfi_wrapper (
   (* keep *)      wire [3:0]  dmem_wstrb;
 
   (* keep *)      wire        ebreak;
+  (* keep *)      wire        trap;
+  (* keep *)      wire        rvfi_mem_valid;
+  (* keep *)      wire        rvfi_mem_instr;
 
   svc_rv #(
     .XLEN        (32),
@@ -78,31 +59,70 @@ module rvfi_wrapper (
     .dmem_wdata  (dmem_wdata),
     .dmem_wstrb  (dmem_wstrb),
 
+    .ebreak      (ebreak),
+    .trap        (trap),
+
     .rvfi_valid      (rvfi_valid),
     .rvfi_order      (rvfi_order),
     .rvfi_insn       (rvfi_insn),
-    .rvfi_pc_rdata   (rvfi_pc_rdata),
-    .rvfi_pc_wdata   (rvfi_pc_wdata),
-    .rvfi_rs1_addr   (rvfi_rs1_addr),
-    .rvfi_rs2_addr   (rvfi_rs2_addr),
-    .rvfi_rd_addr    (rvfi_rd_addr),
-    .rvfi_rs1_rdata  (rvfi_rs1_rdata),
-    .rvfi_rs2_rdata  (rvfi_rs2_rdata),
-    .rvfi_rd_wdata   (rvfi_rd_wdata),
     .rvfi_trap       (rvfi_trap),
     .rvfi_halt       (rvfi_halt),
     .rvfi_intr       (rvfi_intr),
     .rvfi_mode       (rvfi_mode),
     .rvfi_ixl        (rvfi_ixl),
-    .rvfi_mem_valid  (rvfi_mem_valid),
-    .rvfi_mem_instr  (rvfi_mem_instr),
+    .rvfi_rs1_addr   (rvfi_rs1_addr),
+    .rvfi_rs2_addr   (rvfi_rs2_addr),
+    .rvfi_rs1_rdata  (rvfi_rs1_rdata),
+    .rvfi_rs2_rdata  (rvfi_rs2_rdata),
+    .rvfi_rd_addr    (rvfi_rd_addr),
+    .rvfi_rd_wdata   (rvfi_rd_wdata),
+    .rvfi_pc_rdata   (rvfi_pc_rdata),
+    .rvfi_pc_wdata   (rvfi_pc_wdata),
     .rvfi_mem_addr   (rvfi_mem_addr),
     .rvfi_mem_rmask  (rvfi_mem_rmask),
     .rvfi_mem_wmask  (rvfi_mem_wmask),
     .rvfi_mem_rdata  (rvfi_mem_rdata),
     .rvfi_mem_wdata  (rvfi_mem_wdata),
+    .rvfi_mem_valid  (rvfi_mem_valid),
+    .rvfi_mem_instr  (rvfi_mem_instr),
 
-    .ebreak      (ebreak)
+`ifdef RISCV_FORMAL_CSR_MCYCLE
+    .rvfi_csr_mcycle_rmask (rvfi_csr_mcycle_rmask),
+    .rvfi_csr_mcycle_wmask (rvfi_csr_mcycle_wmask),
+    .rvfi_csr_mcycle_rdata (rvfi_csr_mcycle_rdata),
+    .rvfi_csr_mcycle_wdata (rvfi_csr_mcycle_wdata),
+`endif
+
+`ifdef RISCV_FORMAL_CSR_MINSTRET
+    .rvfi_csr_minstret_rmask (rvfi_csr_minstret_rmask),
+    .rvfi_csr_minstret_wmask (rvfi_csr_minstret_wmask),
+    .rvfi_csr_minstret_rdata (rvfi_csr_minstret_rdata),
+    .rvfi_csr_minstret_wdata (rvfi_csr_minstret_wdata)
+`endif
   );
+
+`ifdef RISCV_FORMAL_BUS
+
+`define RISCV_FORMAL_CHANNEL_SIGNAL(channels, width, name) \
+  (* keep *) reg [(width) - 1:0] imem_``name; assign rvfi_``name[0 * (width) +: (width)] = imem_``name;
+`RVFI_BUS_SIGNALS
+`undef RISCV_FORMAL_CHANNEL_SIGNAL
+
+  //
+  // Instruction memory bus interface
+  //
+  always_comb begin
+    imem_bus_addr  = imem_raddr;
+    imem_bus_insn  = 1'b1;
+    imem_bus_data  = 1'b0;
+    imem_bus_rmask = imem_ren ? 4'b1111 : 4'b0000;
+    imem_bus_wmask = 4'b0000;
+    imem_bus_rdata = imem_rdata;
+    imem_bus_wdata = 32'h0;
+    imem_bus_fault = 1'b0;
+    imem_bus_valid = imem_ren;
+  end
+
+`endif
 
 endmodule
