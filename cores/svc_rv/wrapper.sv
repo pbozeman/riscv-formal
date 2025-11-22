@@ -2,39 +2,39 @@
 // Configuration via defines (can be overridden via +define+ in .sby files)
 //
 `ifndef SVC_RV_PIPELINED
-  `define SVC_RV_PIPELINED 1
+`define SVC_RV_PIPELINED 1
 `endif
 
 `ifndef SVC_RV_FWD_REGFILE
-  `define SVC_RV_FWD_REGFILE 1
+`define SVC_RV_FWD_REGFILE 1
 `endif
 
 `ifndef SVC_RV_FWD
-  `define SVC_RV_FWD 1
+`define SVC_RV_FWD 1
 `endif
 
 `ifndef SVC_RV_MEM_TYPE
-  `define SVC_RV_MEM_TYPE 0
+`define SVC_RV_MEM_TYPE 0
 `endif
 
 `ifndef SVC_RV_BPRED
-  `define SVC_RV_BPRED 0
+`define SVC_RV_BPRED 0
 `endif
 
 `ifndef SVC_RV_BTB_ENABLE
-  `define SVC_RV_BTB_ENABLE 0
+`define SVC_RV_BTB_ENABLE 0
 `endif
 
 `ifndef SVC_RV_RAS_ENABLE
-  `define SVC_RV_RAS_ENABLE 0
+`define SVC_RV_RAS_ENABLE 0
 `endif
 
 `ifndef SVC_RV_EXT_ZMMUL
-  `define SVC_RV_EXT_ZMMUL 0
+`define SVC_RV_EXT_ZMMUL 0
 `endif
 
 `ifndef SVC_RV_EXT_M
-  `define SVC_RV_EXT_M 0
+`define SVC_RV_EXT_M 0
 `endif
 
 module rvfi_wrapper (
@@ -124,20 +124,6 @@ module rvfi_wrapper (
       .rvfi_mem_wdata(rvfi_mem_wdata),
       .rvfi_mem_valid(rvfi_mem_valid),
       .rvfi_mem_instr(rvfi_mem_instr),
-
-`ifdef RISCV_FORMAL_CSR_MCYCLE
-      .rvfi_csr_mcycle_rmask(rvfi_csr_mcycle_rmask),
-      .rvfi_csr_mcycle_wmask(rvfi_csr_mcycle_wmask),
-      .rvfi_csr_mcycle_rdata(rvfi_csr_mcycle_rdata),
-      .rvfi_csr_mcycle_wdata(rvfi_csr_mcycle_wdata),
-`endif
-
-`ifdef RISCV_FORMAL_CSR_MINSTRET
-      .rvfi_csr_minstret_rmask(rvfi_csr_minstret_rmask),
-      .rvfi_csr_minstret_wmask(rvfi_csr_minstret_wmask),
-      .rvfi_csr_minstret_rdata(rvfi_csr_minstret_rdata),
-      .rvfi_csr_minstret_wdata(rvfi_csr_minstret_wdata)
-`endif
   );
 
 `ifdef RISCV_FORMAL_BUS
