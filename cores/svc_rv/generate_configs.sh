@@ -3,7 +3,7 @@
 #
 # Generate riscv-formal check configurations for different svc_rv variants
 #
-# Creates checks_NAME.cfg files and generates checks_NAME/ directories
+# Creates NAME_checks.cfg files and generates NAME_checks/ directories
 # following the naming convention from tb/rv testbenches.
 #
 
@@ -48,7 +48,7 @@ echo "Generating riscv-formal configuration files..."
 for cfg in "${CONFIGS[@]}"; do
   IFS=':' read -r NAME PIPE FWD FWD_REG MEM BPRED BTB RAS EXT_M EXT_Z <<<"$cfg"
 
-  cfg_file="checks_${NAME}.cfg"
+  cfg_file="${NAME}_checks.cfg"
   echo "  Creating $cfg_file"
 
   #
@@ -119,7 +119,7 @@ echo ""
 echo "Generated ${#CONFIGS[@]} configuration files."
 echo ""
 echo "To generate checks for a specific config:"
-echo "  python3 ../../checks/genchecks.py checks_bram_fwd"
+echo "  python3 ../../checks/genchecks.py bram_fwd_checks"
 echo ""
 echo "To generate all checks:"
-echo "  for cfg in checks_*.cfg; do python3 ../../checks/genchecks.py \${cfg%.cfg}; done"
+echo "  for cfg in *_checks.cfg; do python3 ../../checks/genchecks.py \${cfg%.cfg}; done"
