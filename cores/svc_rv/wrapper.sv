@@ -45,14 +45,41 @@ module rvfi_wrapper (
 );
 
   //
+  // Instruction memory configuration
+  //
+  localparam IMEM_WORDS = 32;
+  localparam IMEM_AW = $clog2(IMEM_WORDS);
+
+  //
   // Memory interface signals
   //
   // riscv-formal models architectural memory; the solver picks
   // instruction and data values that satisfy the formal properties.
   //
+  // For instruction memory, we use immutable memory (constant array):
+  // Each location gets a random value that stays constant throughout
+  // the trace. This is required for BTB correctness, since BTB assumes
+  // instruction memory doesn't change.
+  //
+  // Limited to 32 words to reduce solver complexity.
+  //
+  // Use generate block to create individual anyconst registers, then
+  // wire them to an array for dynamic indexing (can't index generate
+  // blocks directly with non-constant values).
+  //
+  wire [31:0] imem_array[IMEM_WORDS];
+
+  genvar imem_i;
+  generate
+    for (imem_i = 0; imem_i < IMEM_WORDS; imem_i = imem_i + 1) begin : gen_imem
+      `rvformal_rand_const_reg [31:0] data;
+      assign imem_array[imem_i] = data;
+    end
+  endgenerate
+
   (* keep *)wire                      imem_ren;
   (* keep *)wire               [31:0] imem_raddr;
-  (* keep *)`rvformal_rand_reg [31:0] imem_rdata;
+  (* keep *)wire               [31:0] imem_rdata;
 
   (* keep *)wire                      dmem_ren;
   (* keep *)wire               [31:0] dmem_raddr;
@@ -125,6 +152,16 @@ module rvfi_wrapper (
       .rvfi_mem_valid(rvfi_mem_valid),
       .rvfi_mem_instr(rvfi_mem_instr),
   );
+
+  //
+  // Instruction memory access
+  //
+  // Map reads to immutable memory. Addresses wrap within the configured
+  // word count by masking to the address width.
+  //
+  wire [IMEM_AW-1:0] imem_idx;
+  assign imem_idx   = imem_raddr[IMEM_AW+1:2] & ((1 << IMEM_AW) - 1);
+  assign imem_rdata = imem_ren ? imem_array[imem_idx] : 32'hxxxxxxxx;
 
 `ifdef RISCV_FORMAL_BUS
 
