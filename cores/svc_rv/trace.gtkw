@@ -1,54 +1,72 @@
 [*]
-[*] GTKWave Analyzer v3.3.107 (w)1999-2020 BSI
-[*] Wed Oct 21 17:13:34 2020
+[*] GTKWave Analyzer v3.3.121 (w)1999-2024 BSI
+[*] Tue Nov 25 18:17:42 2025
 [*]
-[dumpfile] "(null)"
-[savefile] "/home/claire/Work/riscv-formal/cores/nerv/trace.gtkw"
+[dumpfile] "/home/pbozeman/src/svc/tb/riscv-formal/cores/svc_rv/bram_checks/insn_beq_ch0/engine_0/trace.vcd"
+[dumpfile_mtime] "Tue Nov 25 18:12:29 2025"
+[dumpfile_size] 305592
+[savefile] "/home/pbozeman/src/svc/tb/riscv-formal/cores/svc_rv/trace.gtkw"
 [timestart] 0
-[size] 1259 841
+[size] 5120 1345
 [pos] 2135 225
-*-5.139064 105 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-3.139064 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] rvfi_testbench.
 [treeopen] rvfi_testbench.checker_inst.
 [treeopen] rvfi_testbench.wrapper.
-[sst_width] 240
-[signals_width] 287
+[sst_width] 418
+[signals_width] 431
 [sst_expanded] 1
-[sst_vpaned_height] 235
+[sst_vpaned_height] 414
 @24
 smt_step
 @200
 -
 -Core
+-
 @28
-rvfi_testbench.wrapper.uut.clock
-rvfi_testbench.wrapper.uut.reset
-rvfi_testbench.wrapper.uut.stall
-rvfi_testbench.wrapper.uut.trap
+rvfi_testbench.wrapper.dut.imem_ren
+@22
+rvfi_testbench.wrapper.dut.imem_raddr[31:0]
+rvfi_testbench.wrapper.dut.imem_rdata[31:0]
 @200
 -
-@23
-rvfi_testbench.wrapper.uut.pc[31:0]
 @22
-rvfi_testbench.wrapper.uut.insn[31:0]
+rvfi_testbench.wrapper.dut.instr_id[31:0]
+rvfi_testbench.wrapper.dut.instr_ex[31:0]
+rvfi_testbench.wrapper.dut.instr_mem[31:0]
+rvfi_testbench.wrapper.dut.instr_wb[31:0]
+@200
+-
+-
+@22
+rvfi_testbench.wrapper.dut.pc_plus4_id[31:0]
+rvfi_testbench.wrapper.dut.pc_plus4_ex[31:0]
+rvfi_testbench.wrapper.dut.pc_plus4_mem[31:0]
+rvfi_testbench.wrapper.dut.pc_plus4_wb[31:0]
+@200
+-
+@28
+rvfi_testbench.wrapper.dut.retired
+@22
+rvfi_testbench.wrapper.dut.f_prev_insn[31:0]
+@23
+rvfi_testbench.wrapper.dut.f_prev_pc[31:0]
+@22
+rvfi_testbench.wrapper.dut.f_commit_pc[31:0]
+@200
+-
+@28
+rvfi_testbench.wrapper.dut.pc_stall
+rvfi_testbench.wrapper.dut.if_id_stall
+rvfi_testbench.wrapper.dut.id_ex_stall
+rvfi_testbench.wrapper.dut.ex_mem_stall
+rvfi_testbench.wrapper.dut.mem_wb_stall
+@200
+-
 @c00200
 -insn_decoded
-@22
-rvfi_testbench.wrapper.uut.insn_funct7[6:0]
-rvfi_testbench.wrapper.uut.insn_rs2[4:0]
-rvfi_testbench.wrapper.uut.insn_rs1[4:0]
-@28
-rvfi_testbench.wrapper.uut.insn_funct3[2:0]
-@22
-rvfi_testbench.wrapper.uut.insn_rd[4:0]
-rvfi_testbench.wrapper.uut.insn_opcode[6:0]
 @200
 -
-@22
-rvfi_testbench.wrapper.uut.imm_b_sext[31:0]
-rvfi_testbench.wrapper.uut.imm_i_sext[31:0]
-rvfi_testbench.wrapper.uut.imm_j_sext[31:0]
-rvfi_testbench.wrapper.uut.imm_s_sext[31:0]
 @1401200
 -insn_decoded
 @200
@@ -58,14 +76,11 @@ rvfi_testbench.wrapper.uut.imm_s_sext[31:0]
 rvfi_testbench.checker_inst.rvfi_order[63:0]
 @28
 rvfi_testbench.checker_inst.rvfi_valid
-@29
 rvfi_testbench.checker_inst.spec_valid
-@28
 rvfi_testbench.checker_inst.rvfi_trap
 @22
 rvfi_testbench.checker_inst.rvfi_insn[31:0]
-rvfi_testbench.wrapper.uut.rvfi_pc_rdata[31:0]
-@c00200
+@800200
 -spec
 @28
 rvfi_testbench.checker_inst.spec_valid
@@ -85,9 +100,9 @@ rvfi_testbench.checker_inst.spec_mem_addr[31:0]
 rvfi_testbench.checker_inst.spec_mem_wdata[31:0]
 rvfi_testbench.checker_inst.spec_mem_rmask[3:0]
 rvfi_testbench.checker_inst.spec_mem_wmask[3:0]
-@1401200
+@1000200
 -spec
-@c00200
+@800200
 -rvfi
 @24
 rvfi_testbench.checker_inst.rvfi_order[63:0]
@@ -125,28 +140,12 @@ rvfi_testbench.checker_inst.rvfi_mem_rdata[31:0]
 rvfi_testbench.checker_inst.rvfi_mem_rmask[3:0]
 rvfi_testbench.checker_inst.rvfi_mem_wdata[31:0]
 rvfi_testbench.checker_inst.rvfi_mem_wmask[3:0]
-@1401200
+@1000200
 -rvfi
 @c00200
 -csr
 @28
 rvfi_testbench.checker_inst.check
-rvfi_testbench.checker_inst.csr_write_valid
-rvfi_testbench.checker_inst.csr_read_valid
-rvfi_testbench.checker_inst.csr_written
-rvfi_testbench.checker_inst.csr_read_shadowed
-rvfi_testbench.checker_inst.csr_mode_shadow
-@22
-rvfi_testbench.checker_inst.csr_mode[1:0]
-rvfi_testbench.checker_inst.csr_insn_addr[11:0]
-rvfi_testbench.checker_inst.csr_insn_rdata[31:0]
-rvfi_testbench.checker_inst.csr_insn_rmask[31:0]
-rvfi_testbench.checker_inst.csr_insn_wdata[31:0]
-rvfi_testbench.checker_inst.csr_insn_wmask[31:0]
-rvfi_testbench.checker_inst.rsval_shadow[31:0]
-rvfi_testbench.checker_inst.wdata_shadow[31:0]
-rvfi_testbench.checker_inst.rdata_shadow[31:0]
-rvfi_testbench.checker_inst.csr_mode_shadow[1:0]
 @1401200
 -csr
 [pattern_trace] 1
