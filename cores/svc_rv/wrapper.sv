@@ -77,13 +77,15 @@ module rvfi_wrapper (
     end
   endgenerate
 
+  (* keep *)`rvformal_rand_reg [31:0] dmem_rdata_any;
+
   (* keep *)wire                      imem_ren;
   (* keep *)wire               [31:0] imem_raddr;
   (* keep *)wire               [31:0] imem_rdata;
 
   (* keep *)wire                      dmem_ren;
   (* keep *)wire               [31:0] dmem_raddr;
-  (* keep *)`rvformal_rand_reg [31:0] dmem_rdata;
+  (* keep *)wire               [31:0] dmem_rdata;
 
   (* keep *)wire                      dmem_we;
   (* keep *)wire               [31:0] dmem_waddr;
@@ -159,12 +161,53 @@ module rvfi_wrapper (
   // Map reads to immutable memory. Addresses wrap within the configured
   // word count by masking to the address width.
   //
+  // SRAM: Combinational read (0-cycle latency)
+  // BRAM: Registered read (1-cycle latency)
+  //
   wire [IMEM_AW-1:0] imem_idx;
-  assign imem_idx   = imem_raddr[IMEM_AW+1:2] & ((1 << IMEM_AW) - 1);
-  assign imem_rdata = imem_ren ? imem_array[imem_idx] : 32'hxxxxxxxx;
+  assign imem_idx = imem_raddr[IMEM_AW+1:2] & ((1 << IMEM_AW) - 1);
+
+  if (`SVC_RV_MEM_TYPE == 1) begin : g_bram_timing
+    reg [31:0] imem_rdata_reg;
+    always @(posedge clock) begin
+      if (reset) begin
+        // This is what the svc_rv_soc_bram does at startup
+        imem_rdata_reg <= 32'h00000013;
+      end else if (imem_ren) begin
+        imem_rdata_reg <= imem_array[imem_idx];
+      end
+    end
+    assign imem_rdata = imem_rdata_reg;
+  end else begin : g_sram_timing
+    assign imem_rdata = imem_ren ? imem_array[imem_idx] : 32'hxxxxxxxx;
+  end
+
+  //
+  // Data memory access timing
+  //
+  // For formal we don't model actual data contents here; the RVFI / RVFI_BUS
+  // checkers track architectural memory. We only need to match the timing:
+  //
+  //   SRAM (MEM_TYPE=0): combinational read (0-cycle latency)
+  //   BRAM (MEM_TYPE=1): registered read (1-cycle latency)
+  //
+  if (`SVC_RV_MEM_TYPE == 1) begin : g_dmem_bram_timing
+    reg [31:0] dmem_rdata_reg;
+
+    always @(posedge clock) begin
+      if (reset) begin
+        dmem_rdata_reg <= 32'hxxxxxxxx;
+      end else if (dmem_ren) begin
+        dmem_rdata_reg <= dmem_rdata_any;
+      end
+    end
+
+    assign dmem_rdata = dmem_rdata_reg;
+  end else begin : g_dmem_sram_timing
+    assign dmem_rdata = dmem_ren ? dmem_rdata_any : 32'hxxxxxxxx;
+  end
 
 `ifdef RISCV_FORMAL_BUS
-
   //
   // Data memory bus interface - NOT IMPLEMENTED
   //
