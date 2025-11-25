@@ -41,7 +41,7 @@ checks: config
 %_check: config
 	cd $(TOP)
 	python3 ../../checks/genchecks.py checks_$*
-	$(MAKE) -C checks_$*
+	$(MAKE) -k -C checks_$*
 
 #
 # Generate checks for all configurations
