@@ -75,7 +75,7 @@ insn            10
 reg        5    10
 pc_fwd    10    20
 pc_bwd    10    20
-liveness  1  10 30
+liveness  1  10 40
 unique    1  10 30
 # FIXME: re-enable when done
 # causal    10    30
