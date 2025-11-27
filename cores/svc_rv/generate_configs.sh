@@ -9,6 +9,36 @@
 
 set -e
 
+#
+# Mode from environment (default: quick)
+#
+MODE="${RISCV_FORMAL_MODE:-quick}"
+
+#
+# Depth profiles
+#
+if [[ $MODE == "quick" ]]; then
+  DEPTH_INSN=10
+  DEPTH_REG="5 10"
+  DEPTH_PC="5 10"
+  DEPTH_LIVE="1 10 20"
+  DEPTH_UNIQUE="1 10 30"
+  DEPTH_CAUSAL="5 10"
+  DEPTH_COVER="1 10"
+  DEPTH_ILL=10
+  DEPTH_DIV=20
+else
+  DEPTH_INSN=20
+  DEPTH_REG="15 30"
+  DEPTH_PC="10 30"
+  DEPTH_LIVE="1 10 30"
+  DEPTH_UNIQUE="1 10 30"
+  DEPTH_CAUSAL="10 30"
+  DEPTH_COVER="1 20"
+  DEPTH_ILL=20
+  DEPTH_DIV=20
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
@@ -43,7 +73,7 @@ CONFIGS=(
   "sram_sc:0:0:0:0:0:0:0:0:0"
 )
 
-echo "Generating riscv-formal configuration files..."
+echo "Generating riscv-formal configuration files (mode: $MODE)..."
 
 for cfg in "${CONFIGS[@]}"; do
   IFS=':' read -r NAME PIPE FWD FWD_REG MEM BPRED BTB RAS EXT_M EXT_Z <<<"$cfg"
@@ -70,15 +100,19 @@ isa $ISA
 nret 1
 
 [depth]
-insn            20
-reg       15    30
-pc_fwd    10    30
-pc_bwd    10    30
-liveness  1  10 30
-unique    1  10 30
-causal    10    30
-cover     1     20
-ill             20
+insn      $DEPTH_INSN
+reg       $DEPTH_REG
+pc_fwd    $DEPTH_PC
+pc_bwd    $DEPTH_PC
+liveness  $DEPTH_LIVE
+unique    $DEPTH_UNIQUE
+causal    $DEPTH_CAUSAL
+cover     $DEPTH_COVER
+ill       $DEPTH_ILL
+div       $DEPTH_DIV
+divu      $DEPTH_DIV
+rem       $DEPTH_DIV
+remu      $DEPTH_DIV
 
 [engines]
 smtbmc boolector
