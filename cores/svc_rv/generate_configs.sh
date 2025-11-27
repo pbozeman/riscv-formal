@@ -18,7 +18,7 @@ MODE="${RISCV_FORMAL_MODE:-quick}"
 # Depth profiles
 #
 if [[ $MODE == "quick" ]]; then
-  DEPTH_INSN=10
+  DEPTH_INSN=15
   DEPTH_REG="5 10"
   DEPTH_PC="5 10"
   DEPTH_LIVE="1 10 20"
@@ -26,7 +26,6 @@ if [[ $MODE == "quick" ]]; then
   DEPTH_CAUSAL="5 10"
   DEPTH_COVER="1 10"
   DEPTH_ILL=10
-  DEPTH_DIV=20
 else
   DEPTH_INSN=20
   DEPTH_REG="15 30"
@@ -36,7 +35,6 @@ else
   DEPTH_CAUSAL="10 30"
   DEPTH_COVER="1 20"
   DEPTH_ILL=20
-  DEPTH_DIV=20
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -109,10 +107,6 @@ unique    $DEPTH_UNIQUE
 causal    $DEPTH_CAUSAL
 cover     $DEPTH_COVER
 ill       $DEPTH_ILL
-div       $DEPTH_DIV
-divu      $DEPTH_DIV
-rem       $DEPTH_DIV
-remu      $DEPTH_DIV
 
 [engines]
 smtbmc boolector
