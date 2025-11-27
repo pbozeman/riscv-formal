@@ -21,7 +21,7 @@ cd "$SCRIPT_DIR"
 # Note: ras implies btb, btb implies bpred
 #
 CONFIGS=(
-  # SRAM pipelined variants (MEM_TYPE=0, PIPELINED=1) - baseline was SRAM!
+  # SRAM pipelined variants (MEM_TYPE=0, PIPELINED=1)
   "sram_fwd:1:1:1:0:0:0:0:0:0"
   "sram:1:0:0:0:0:0:0:0:0"
   "sram_m_fwd:1:1:1:0:0:0:0:1:0"
@@ -70,17 +70,15 @@ isa $ISA
 nret 1
 
 [depth]
-# TODO: bump to 20 once everything is passing
-insn            10
-reg        5    10
-pc_fwd    10    20
-pc_bwd    10    20
-liveness  1  10 40
+insn            20
+reg       15    30
+pc_fwd    10    30
+pc_bwd    10    30
+liveness  1  10 30
 unique    1  10 30
-# FIXME: re-enable when done
-# causal    10    30
-cover     1     15
-ill             10
+causal    10    30
+cover     1     20
+ill             20
 
 [engines]
 smtbmc boolector
