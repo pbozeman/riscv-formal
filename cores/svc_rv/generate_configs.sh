@@ -18,7 +18,11 @@ MODE="${RISCV_FORMAL_MODE:-quick}"
 # Depth profiles
 #
 if [[ $MODE == "quick" ]]; then
-  DEPTH_INSN=15
+  DEPTH_INSN=10
+  DEPTH_INSN_DIV=15
+  DEPTH_INSN_DIVU=15
+  DEPTH_INSN_REM=15
+  DEPTH_INSN_REMU=15
   DEPTH_REG="5 10"
   DEPTH_PC="5 10"
   DEPTH_LIVE="1 10 20"
@@ -28,6 +32,10 @@ if [[ $MODE == "quick" ]]; then
   DEPTH_ILL=10
 else
   DEPTH_INSN=20
+  DEPTH_INSN_DIV=20
+  DEPTH_INSN_DIVU=20
+  DEPTH_INSN_REM=20
+  DEPTH_INSN_REMU=20
   DEPTH_REG="15 30"
   DEPTH_PC="10 30"
   DEPTH_LIVE="1 10 30"
@@ -99,6 +107,10 @@ nret 1
 
 [depth]
 insn      $DEPTH_INSN
+insn_div    $DEPTH_INSN_DIV
+insn_divu   $DEPTH_INSN_DIVU
+insn_rem    $DEPTH_INSN_REM
+insn_remu   $DEPTH_INSN_REMU
 reg       $DEPTH_REG
 pc_fwd    $DEPTH_PC
 pc_bwd    $DEPTH_PC
