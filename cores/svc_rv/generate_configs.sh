@@ -30,7 +30,7 @@ if [[ $MODE == "quick" ]]; then
 else
   DEPTH_INSN_PIPE=20
   DEPTH_INSN_SC=10
-  DEPTH_REG="15 30"
+  DEPTH_REG="15 20"
   DEPTH_PC="10 30"
   DEPTH_LIVE="1 10 30"
   DEPTH_UNIQUE="1 10 30"
