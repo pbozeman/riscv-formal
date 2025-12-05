@@ -44,7 +44,7 @@ cd "$SCRIPT_DIR"
 
 #
 # Configuration matrix
-# Format: "NAME:PIPE:FWD:FWD_REG:MEM:BPRED:BTB:RAS:EXT_M:EXT_Z"
+# Format: "NAME:PIPE:FWD:FWD_REG:MEM:BPRED:BTB:RAS:EXT_M:EXT_Z:PC_REG"
 #
 # Memory: 0=SRAM, 1=BRAM
 # PIPE: 0=single-cycle, 1=pipelined
@@ -52,31 +52,35 @@ cd "$SCRIPT_DIR"
 #
 CONFIGS=(
   # SRAM pipelined variants (MEM_TYPE=0, PIPELINED=1)
-  "sram_fwd:1:1:1:0:0:0:0:0:0"
-  "sram:1:0:0:0:0:0:0:0:0"
-  "sram_m_fwd:1:1:1:0:0:0:0:1:0"
-  "sram_zmmul_fwd:1:1:1:0:0:0:0:0:1"
-  "sram_bpred_fwd:1:1:1:0:1:0:0:0:0"
-  "sram_btb_fwd:1:1:1:0:1:1:0:0:0"
-  "sram_ras_fwd:1:1:1:0:1:1:1:0:0"
+  "sram_fwd:1:1:1:0:0:0:0:0:0:0"
+  "sram:1:0:0:0:0:0:0:0:0:0"
+  "sram_m_fwd:1:1:1:0:0:0:0:1:0:0"
+  "sram_zmmul_fwd:1:1:1:0:0:0:0:0:1:0"
+  "sram_bpred_fwd:1:1:1:0:1:0:0:0:0:0"
+  "sram_btb_fwd:1:1:1:0:1:1:0:0:0:0"
+  "sram_ras_fwd:1:1:1:0:1:1:1:0:0:0"
+  "sram_pc:1:0:0:0:0:0:0:0:0:1"
+  "sram_ras_fwd_pc:1:1:1:0:1:1:1:0:0:1"
 
   # BRAM variants (MEM_TYPE=1, PIPELINED=1)
-  "bram:1:0:0:1:0:0:0:0:0"
-  "bram_fwd:1:1:1:1:0:0:0:0:0"
-  "bram_m_fwd:1:1:1:1:0:0:0:1:0"
-  "bram_zmmul_fwd:1:1:1:1:0:0:0:0:1"
-  "bram_bpred_fwd:1:1:1:1:1:0:0:0:0"
-  "bram_btb_fwd:1:1:1:1:1:1:0:0:0"
-  "bram_ras_fwd:1:1:1:1:1:1:1:0:0"
+  "bram:1:0:0:1:0:0:0:0:0:0"
+  "bram_fwd:1:1:1:1:0:0:0:0:0:0"
+  "bram_m_fwd:1:1:1:1:0:0:0:1:0:0"
+  "bram_zmmul_fwd:1:1:1:1:0:0:0:0:1:0"
+  "bram_bpred_fwd:1:1:1:1:1:0:0:0:0:0"
+  "bram_btb_fwd:1:1:1:1:1:1:0:0:0:0"
+  "bram_ras_fwd:1:1:1:1:1:1:1:0:0:0"
+  "bram_pc:1:0:0:1:0:0:0:0:0:1"
+  "bram_ras_fwd_pc:1:1:1:1:1:1:1:0:0:1"
 
   # SRAM single-cycle (MEM_TYPE=0, PIPELINED=0)
-  "sram_sc:0:0:0:0:0:0:0:0:0"
+  "sram_sc:0:0:0:0:0:0:0:0:0:0"
 )
 
 echo "Generating riscv-formal configuration files (mode: $MODE)..."
 
 for cfg in "${CONFIGS[@]}"; do
-  IFS=':' read -r NAME PIPE FWD FWD_REG MEM BPRED BTB RAS EXT_M EXT_Z <<<"$cfg"
+  IFS=':' read -r NAME PIPE FWD FWD_REG MEM BPRED BTB RAS EXT_M EXT_Z PC_REG <<<"$cfg"
 
   cfg_file="${NAME}_checks.cfg"
   echo "  Creating $cfg_file"
@@ -140,6 +144,7 @@ verilog_defaults -add -I@basedir@/../../rtl/rv
 \`define SVC_RV_RAS_ENABLE $RAS
 \`define SVC_RV_EXT_M $EXT_M
 \`define SVC_RV_EXT_ZMMUL $EXT_Z
+\`define SVC_RV_PC_REG $PC_REG
 
 [verilog-files]
 @basedir@/cores/@core@/config.sv
