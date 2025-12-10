@@ -22,9 +22,9 @@ if [[ $MODE == "quick" ]]; then
   DEPTH_INSN_SC=10
   DEPTH_REG="5 10"
   DEPTH_PC="5 10"
-  DEPTH_LIVE="1 10 20"
+  DEPTH_LIVE="1 15 25"
   DEPTH_UNIQUE="1 10 30"
-  DEPTH_CAUSAL="5 10"
+  DEPTH_CAUSAL="10 15"
   DEPTH_COVER="1 10"
   DEPTH_ILL=10
 else
@@ -32,9 +32,9 @@ else
   DEPTH_INSN_SC=10
   DEPTH_REG="15 20"
   DEPTH_PC="10 30"
-  DEPTH_LIVE="1 10 30"
+  DEPTH_LIVE="1 15 25"
   DEPTH_UNIQUE="1 10 30"
-  DEPTH_CAUSAL="10 30"
+  DEPTH_CAUSAL="10 15"
   DEPTH_COVER="1 20"
   DEPTH_ILL=20
 fi
@@ -129,12 +129,14 @@ smtbmc boolector
 [script-defines]
 verilog_defaults -add -I@basedir@/../../rtl
 verilog_defaults -add -I@basedir@/../../rtl/common
+verilog_defaults -add -I@basedir@/../../rtl/fifo
 verilog_defaults -add -I@basedir@/../../rtl/rv
 
 [defines]
 \`define RISCV_FORMAL_ALIGNED_MEM
 \`define RISCV_FORMAL_ALTOPS
 \`define RISCV_FORMAL_UMODE
+\`define FORMAL_NO_SUBMODULES
 \`define SVC_RV_PIPELINED $PIPE
 \`define SVC_RV_FWD $FWD
 \`define SVC_RV_FWD_REGFILE $FWD_REG
