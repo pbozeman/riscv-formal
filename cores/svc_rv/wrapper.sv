@@ -87,6 +87,7 @@ module rvfi_wrapper (
   (* keep *)wire                      dmem_ren;
   (* keep *)wire               [31:0] dmem_raddr;
   (* keep *)wire               [31:0] dmem_rdata;
+  (* keep *)wire                      dmem_rvalid;
 
   (* keep *)wire                      dmem_we;
   (* keep *)wire               [31:0] dmem_waddr;
@@ -120,9 +121,10 @@ module rvfi_wrapper (
       .imem_rdata  (imem_rdata),
       .imem_rvalid (imem_rvalid),
 
-      .dmem_ren  (dmem_ren),
-      .dmem_raddr(dmem_raddr),
-      .dmem_rdata(dmem_rdata),
+      .dmem_ren   (dmem_ren),
+      .dmem_raddr (dmem_raddr),
+      .dmem_rdata (dmem_rdata),
+      .dmem_rvalid(dmem_rvalid),
 
       .dmem_we   (dmem_we),
       .dmem_waddr(dmem_waddr),
@@ -204,18 +206,28 @@ module rvfi_wrapper (
   //
   if (`SVC_RV_MEM_TYPE == 1) begin : g_dmem_bram_timing
     reg [31:0] dmem_rdata_reg;
+    reg        dmem_rvalid_reg;
 
     always @(posedge clock) begin
       if (reset) begin
-        dmem_rdata_reg <= 32'hxxxxxxxx;
-      end else if (dmem_ren) begin
-        dmem_rdata_reg <= dmem_rdata_any;
+        dmem_rdata_reg  <= 32'hxxxxxxxx;
+        dmem_rvalid_reg <= 1'b0;
+      end else begin
+        dmem_rvalid_reg <= dmem_ren;
+        if (dmem_ren) begin
+          dmem_rdata_reg <= dmem_rdata_any;
+        end
       end
     end
 
-    assign dmem_rdata = dmem_rdata_reg;
+    assign dmem_rdata  = dmem_rdata_reg;
+    assign dmem_rvalid = dmem_rvalid_reg;
   end else begin : g_dmem_sram_timing
-    assign dmem_rdata = dmem_ren ? dmem_rdata_any : 32'hxxxxxxxx;
+    //
+    // SRAM: combinational reads, always valid
+    //
+    assign dmem_rdata  = dmem_ren ? dmem_rdata_any : 32'hxxxxxxxx;
+    assign dmem_rvalid = 1'b1;
   end
 
 `ifdef RISCV_FORMAL_BUS
