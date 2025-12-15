@@ -87,7 +87,6 @@ module rvfi_wrapper (
   (* keep *)wire                      dmem_ren;
   (* keep *)wire               [31:0] dmem_raddr;
   (* keep *)wire               [31:0] dmem_rdata;
-  (* keep *)wire                      dmem_rvalid;
 
   (* keep *)wire                      dmem_we;
   (* keep *)wire               [31:0] dmem_waddr;
@@ -121,10 +120,9 @@ module rvfi_wrapper (
       .imem_rdata  (imem_rdata),
       .imem_rvalid (imem_rvalid),
 
-      .dmem_ren   (dmem_ren),
-      .dmem_raddr (dmem_raddr),
-      .dmem_rdata (dmem_rdata),
-      .dmem_rvalid(dmem_rvalid),
+      .dmem_ren  (dmem_ren),
+      .dmem_raddr(dmem_raddr),
+      .dmem_rdata(dmem_rdata),
 
       .dmem_we   (dmem_we),
       .dmem_waddr(dmem_waddr),
@@ -165,19 +163,19 @@ module rvfi_wrapper (
   // Map reads to immutable memory. Addresses wrap within the configured
   // word count by masking to the address width.
   //
-  // Timing is determined by PIPELINED (not MEM_TYPE):
-  // - PIPELINED=0: Combinational (0-cycle latency)
-  // - PIPELINED=1: Registered (1-cycle latency) for unified interface
+  // SRAM: Combinational read (0-cycle latency), imem_rvalid = imem_arvalid
+  // BRAM: Registered read (1-cycle latency), imem_rvalid = registered arvalid
   //
   wire [IMEM_AW-1:0] imem_idx;
   assign imem_idx = imem_araddr[IMEM_AW+1:2] & ((1 << IMEM_AW) - 1);
 
-  if (`SVC_RV_PIPELINED == 1) begin : g_pipelined_imem_timing
+  if (`SVC_RV_MEM_TYPE == 1) begin : g_bram_timing
     reg [31:0] imem_rdata_reg;
     reg        imem_rvalid_reg;
 
     always @(posedge clock) begin
       if (reset) begin
+        // This is what the svc_rv_soc_bram does at startup
         imem_rdata_reg  <= 32'h00000013;
         imem_rvalid_reg <= 1'b0;
       end else begin
@@ -190,7 +188,7 @@ module rvfi_wrapper (
 
     assign imem_rdata  = imem_rdata_reg;
     assign imem_rvalid = imem_rvalid_reg;
-  end else begin : g_single_cycle_imem_timing
+  end else begin : g_sram_timing
     assign imem_rdata  = imem_arvalid ? imem_array[imem_idx] : 32'hxxxxxxxx;
     assign imem_rvalid = imem_arvalid;
   end
@@ -206,28 +204,18 @@ module rvfi_wrapper (
   //
   if (`SVC_RV_MEM_TYPE == 1) begin : g_dmem_bram_timing
     reg [31:0] dmem_rdata_reg;
-    reg        dmem_rvalid_reg;
 
     always @(posedge clock) begin
       if (reset) begin
-        dmem_rdata_reg  <= 32'hxxxxxxxx;
-        dmem_rvalid_reg <= 1'b0;
-      end else begin
-        dmem_rvalid_reg <= dmem_ren;
-        if (dmem_ren) begin
-          dmem_rdata_reg <= dmem_rdata_any;
-        end
+        dmem_rdata_reg <= 32'hxxxxxxxx;
+      end else if (dmem_ren) begin
+        dmem_rdata_reg <= dmem_rdata_any;
       end
     end
 
-    assign dmem_rdata  = dmem_rdata_reg;
-    assign dmem_rvalid = dmem_rvalid_reg;
+    assign dmem_rdata = dmem_rdata_reg;
   end else begin : g_dmem_sram_timing
-    //
-    // SRAM: combinational reads, always valid
-    //
-    assign dmem_rdata  = dmem_ren ? dmem_rdata_any : 32'hxxxxxxxx;
-    assign dmem_rvalid = 1'b1;
+    assign dmem_rdata = dmem_ren ? dmem_rdata_any : 32'hxxxxxxxx;
   end
 
 `ifdef RISCV_FORMAL_BUS
