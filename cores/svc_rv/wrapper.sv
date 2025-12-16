@@ -129,6 +129,8 @@ module rvfi_wrapper (
       .dmem_wdata(dmem_wdata),
       .dmem_wstrb(dmem_wstrb),
 
+      .dmem_stall(1'b0),
+
       .ebreak(ebreak),
       .trap  (trap),
 
