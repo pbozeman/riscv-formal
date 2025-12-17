@@ -44,43 +44,54 @@ cd "$SCRIPT_DIR"
 
 #
 # Configuration matrix
-# Format: "NAME:PIPE:FWD:FWD_REG:MEM:BPRED:BTB:RAS:EXT_M:EXT_Z:PC_REG"
+# Format: "NAME:PIPE:FWD:FWD_REG:MEM:BPRED:BTB:RAS:EXT_M:EXT_Z:PC_REG:STALL"
 #
 # Memory: 0=SRAM, 1=BRAM
 # PIPE: 0=single-cycle, 1=pipelined
+# STALL: 0=no stall injection, 1=enable stall injection (pipelined only)
 # Note: ras implies btb, btb implies bpred
 #
 CONFIGS=(
   # SRAM pipelined variants (MEM_TYPE=0, PIPELINED=1)
-  "sram_fwd:1:1:1:0:0:0:0:0:0:0"
-  "sram:1:0:0:0:0:0:0:0:0:0"
-  "sram_m_fwd:1:1:1:0:0:0:0:1:0:0"
-  "sram_zmmul_fwd:1:1:1:0:0:0:0:0:1:0"
-  "sram_bpred_fwd:1:1:1:0:1:0:0:0:0:0"
-  "sram_btb_fwd:1:1:1:0:1:1:0:0:0:0"
-  "sram_ras_fwd:1:1:1:0:1:1:1:0:0:0"
-  "sram_pc:1:0:0:0:0:0:0:0:0:1"
-  "sram_ras_fwd_pc:1:1:1:0:1:1:1:0:0:1"
+  "sram_fwd:1:1:1:0:0:0:0:0:0:0:0"
+  "sram:1:0:0:0:0:0:0:0:0:0:0"
+  "sram_m_fwd:1:1:1:0:0:0:0:1:0:0:0"
+  "sram_zmmul_fwd:1:1:1:0:0:0:0:0:1:0:0"
+  "sram_bpred_fwd:1:1:1:0:1:0:0:0:0:0:0"
+  "sram_btb_fwd:1:1:1:0:1:1:0:0:0:0:0"
+  "sram_ras_fwd:1:1:1:0:1:1:1:0:0:0:0"
+  "sram_pc:1:0:0:0:0:0:0:0:0:1:0"
+  "sram_ras_fwd_pc:1:1:1:0:1:1:1:0:0:1:0"
+  "sram_ras_fwd_stall:1:1:1:0:1:1:1:0:0:0:1"
 
   # BRAM variants (MEM_TYPE=1, PIPELINED=1)
-  "bram:1:0:0:1:0:0:0:0:0:0"
-  "bram_fwd:1:1:1:1:0:0:0:0:0:0"
-  "bram_m_fwd:1:1:1:1:0:0:0:1:0:0"
-  "bram_zmmul_fwd:1:1:1:1:0:0:0:0:1:0"
-  "bram_bpred_fwd:1:1:1:1:1:0:0:0:0:0"
-  "bram_btb_fwd:1:1:1:1:1:1:0:0:0:0"
-  "bram_ras_fwd:1:1:1:1:1:1:1:0:0:0"
-  "bram_pc:1:0:0:1:0:0:0:0:0:1"
-  "bram_ras_fwd_pc:1:1:1:1:1:1:1:0:0:1"
+  "bram:1:0:0:1:0:0:0:0:0:0:0"
+  "bram_fwd:1:1:1:1:0:0:0:0:0:0:0"
+  "bram_m_fwd:1:1:1:1:0:0:0:1:0:0:0"
+  "bram_zmmul_fwd:1:1:1:1:0:0:0:0:1:0:0"
+  "bram_bpred_fwd:1:1:1:1:1:0:0:0:0:0:0"
+  "bram_btb_fwd:1:1:1:1:1:1:0:0:0:0:0"
+  "bram_ras_fwd:1:1:1:1:1:1:1:0:0:0:0"
+  "bram_pc:1:0:0:1:0:0:0:0:0:1:0"
+  "bram_ras_fwd_pc:1:1:1:1:1:1:1:0:0:1:0"
+  "bram_ras_fwd_stall:1:1:1:1:1:1:1:0:0:0:1"
 
   # SRAM single-cycle (MEM_TYPE=0, PIPELINED=0)
-  "sram_sc:0:0:0:0:0:0:0:0:0:0"
+  "sram_sc:0:0:0:0:0:0:0:0:0:0:0"
 )
 
 echo "Generating riscv-formal configuration files (mode: $MODE)..."
 
 for cfg in "${CONFIGS[@]}"; do
-  IFS=':' read -r NAME PIPE FWD FWD_REG MEM BPRED BTB RAS EXT_M EXT_Z PC_REG <<<"$cfg"
+  IFS=':' read -r NAME PIPE FWD FWD_REG MEM BPRED BTB RAS EXT_M EXT_Z PC_REG STALL <<<"$cfg"
+
+  #
+  # Skip *_stall variants in full mode (redundant since all pipelined get stalls)
+  #
+  if [[ $MODE == "full" && $NAME == *_stall ]]; then
+    echo "  Skipping $NAME (redundant in full mode)"
+    continue
+  fi
 
   cfg_file="${NAME}_checks.cfg"
   echo "  Creating $cfg_file"
@@ -92,6 +103,13 @@ for cfg in "${CONFIGS[@]}"; do
     DEPTH_INSN=$DEPTH_INSN_SC
   else
     DEPTH_INSN=$DEPTH_INSN_PIPE
+  fi
+
+  #
+  # Full mode: enable stalls for all pipelined configs
+  #
+  if [[ $MODE == "full" && $PIPE == "1" ]]; then
+    STALL=1
   fi
 
   #
@@ -147,6 +165,7 @@ verilog_defaults -add -I@basedir@/../../rtl/rv
 \`define SVC_RV_EXT_M $EXT_M
 \`define SVC_RV_EXT_ZMMUL $EXT_Z
 \`define SVC_RV_PC_REG $PC_REG
+\`define SVC_RV_STALL $STALL
 
 [verilog-files]
 @basedir@/cores/@core@/config.sv

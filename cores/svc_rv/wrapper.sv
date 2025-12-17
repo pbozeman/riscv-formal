@@ -37,6 +37,10 @@
 `define SVC_RV_EXT_M 0
 `endif
 
+`ifndef SVC_RV_STALL
+`define SVC_RV_STALL 0
+`endif
+
 module rvfi_wrapper (
     input wire clock,
     input wire reset,
@@ -97,12 +101,12 @@ module rvfi_wrapper (
   (* keep *)wire                      rvfi_mem_instr;
 
   //
-  // Stall modeling for formal verification (pipelined configs only)
+  // Stall modeling for formal verification (pipelined configs with STALL enabled)
   //
   // Solver picks stall values; assumes constrain to 0-2 consecutive cycles.
   // This models cache-like behavior where stalls are bounded.
   //
-  if (`SVC_RV_PIPELINED == 1) begin : g_stall_model
+  if (`SVC_RV_PIPELINED == 1 && `SVC_RV_STALL == 1) begin : g_stall_model
     (* keep *)`rvformal_rand_reg stall_in;
 
     // Track pending dmem read
@@ -143,6 +147,9 @@ module rvfi_wrapper (
         assume (dmem_rdata_any == dmem_rdata_held);
       end
     end
+  end else begin : g_stall_model
+    // No stall injection - tie stall to 0
+    wire stall_in = 1'b0;
   end
 
   svc_rv #(
@@ -176,7 +183,7 @@ module rvfi_wrapper (
       .dmem_wdata(dmem_wdata),
       .dmem_wstrb(dmem_wstrb),
 
-      .dmem_stall((`SVC_RV_PIPELINED == 1) ? g_stall_model.stall_in : 1'b0),
+      .dmem_stall(g_stall_model.stall_in),
 
       .ebreak(ebreak),
       .trap  (trap),
@@ -223,7 +230,7 @@ module rvfi_wrapper (
     reg imem_rvalid_reg;
 
     // Get stall signal (0 if not pipelined)
-    wire stall = (`SVC_RV_PIPELINED == 1) ? g_stall_model.stall_in : 1'b0;
+    wire stall = g_stall_model.stall_in;
 
     always @(posedge clock) begin
       if (reset) begin
@@ -260,7 +267,7 @@ module rvfi_wrapper (
     reg [31:0] dmem_rdata_reg;
 
     // Get stall signal (0 if not pipelined)
-    wire stall = (`SVC_RV_PIPELINED == 1) ? g_stall_model.stall_in : 1'b0;
+    wire stall = g_stall_model.stall_in;
 
     always @(posedge clock) begin
       if (reset) begin
