@@ -70,12 +70,10 @@ module rvfi_wrapper (
   wire [31:0] imem_array[IMEM_WORDS];
 
   genvar imem_i;
-  generate
-    for (imem_i = 0; imem_i < IMEM_WORDS; imem_i = imem_i + 1) begin : gen_imem
-      `rvformal_rand_const_reg [31:0] data;
-      assign imem_array[imem_i] = data;
-    end
-  endgenerate
+  for (imem_i = 0; imem_i < IMEM_WORDS; imem_i = imem_i + 1) begin : gen_imem
+    `rvformal_rand_const_reg [31:0] data;
+    assign imem_array[imem_i] = data;
+  end
 
   (* keep *)`rvformal_rand_reg [31:0] dmem_rdata_any;
 
@@ -97,6 +95,55 @@ module rvfi_wrapper (
   (* keep *)wire                      trap;
   (* keep *)wire                      rvfi_mem_valid;
   (* keep *)wire                      rvfi_mem_instr;
+
+  //
+  // Stall modeling for formal verification (pipelined configs only)
+  //
+  // Solver picks stall values; assumes constrain to 0-2 consecutive cycles.
+  // This models cache-like behavior where stalls are bounded.
+  //
+  if (`SVC_RV_PIPELINED == 1) begin : g_stall_model
+    (* keep *)`rvformal_rand_reg stall_in;
+
+    // Track pending dmem read
+    reg                dmem_pending;
+    always @(posedge clock) begin
+      if (reset) dmem_pending <= 0;
+      else if (dmem_ren) dmem_pending <= 1;
+      else if (!stall_in) dmem_pending <= 0;
+    end
+
+    // Only stall when there's actually a pending read
+    always_comb begin
+      assume (!stall_in || dmem_pending);
+    end
+
+    // Bound stall duration (keeps BMC tractable)
+    reg [1:0] stall_count;
+    always @(posedge clock) begin
+      if (reset) stall_count <= 0;
+      else if (stall_in)
+        stall_count <= (stall_count == 2'd2) ? 2'd2 : stall_count + 1;
+      else stall_count <= 0;
+    end
+
+    always_comb begin
+      assume (stall_count < 2 || !stall_in);
+    end
+
+    // Hold dmem_rdata stable during stall
+    reg [31:0] dmem_rdata_held;
+    always @(posedge clock) begin
+      if (reset) dmem_rdata_held <= 32'h0;
+      else if (dmem_ren && !stall_in) dmem_rdata_held <= dmem_rdata_any;
+    end
+
+    always_comb begin
+      if (stall_in) begin
+        assume (dmem_rdata_any == dmem_rdata_held);
+      end
+    end
+  end
 
   svc_rv #(
       .XLEN       (32),
@@ -129,7 +176,7 @@ module rvfi_wrapper (
       .dmem_wdata(dmem_wdata),
       .dmem_wstrb(dmem_wstrb),
 
-      .dmem_stall(1'b0),
+      .dmem_stall((`SVC_RV_PIPELINED == 1) ? g_stall_model.stall_in : 1'b0),
 
       .ebreak(ebreak),
       .trap  (trap),
@@ -173,19 +220,24 @@ module rvfi_wrapper (
 
   if (`SVC_RV_MEM_TYPE == 1) begin : g_bram_timing
     reg [31:0] imem_rdata_reg;
-    reg        imem_rvalid_reg;
+    reg imem_rvalid_reg;
+
+    // Get stall signal (0 if not pipelined)
+    wire stall = (`SVC_RV_PIPELINED == 1) ? g_stall_model.stall_in : 1'b0;
 
     always @(posedge clock) begin
       if (reset) begin
         // This is what the svc_rv_soc_bram does at startup
         imem_rdata_reg  <= 32'h00000013;
         imem_rvalid_reg <= 1'b0;
-      end else begin
+      end else if (!stall) begin
+        // Only advance when not stalled
         imem_rvalid_reg <= imem_arvalid;
         if (imem_arvalid) begin
           imem_rdata_reg <= imem_array[imem_idx];
         end
       end
+      // When stalled, hold current rdata/rvalid
     end
 
     assign imem_rdata  = imem_rdata_reg;
@@ -207,10 +259,14 @@ module rvfi_wrapper (
   if (`SVC_RV_MEM_TYPE == 1) begin : g_dmem_bram_timing
     reg [31:0] dmem_rdata_reg;
 
+    // Get stall signal (0 if not pipelined)
+    wire stall = (`SVC_RV_PIPELINED == 1) ? g_stall_model.stall_in : 1'b0;
+
     always @(posedge clock) begin
       if (reset) begin
         dmem_rdata_reg <= 32'hxxxxxxxx;
-      end else if (dmem_ren) begin
+      end else if (dmem_ren && !stall) begin
+        // Data "arrives" when stall clears
         dmem_rdata_reg <= dmem_rdata_any;
       end
     end
