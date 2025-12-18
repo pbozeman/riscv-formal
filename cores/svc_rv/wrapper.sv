@@ -108,15 +108,15 @@ module rvfi_wrapper (
   if (`SVC_RV_PIPELINED == 1 && `SVC_RV_STALL == 1) begin : g_stall_model
     (* keep *)`rvformal_rand_reg stall_in;
 
-    // Track pending dmem read
+    // Track pending dmem access (read or write)
     reg                dmem_pending;
     always @(posedge clock) begin
       if (reset) dmem_pending <= 0;
-      else if (dmem_ren) dmem_pending <= 1;
+      else if (dmem_ren || dmem_we) dmem_pending <= 1;
       else if (!stall_in) dmem_pending <= 0;
     end
 
-    // Only stall when there's actually a pending read
+    // Only stall when there's actually a pending access
     always_comb begin
       assume (!stall_in || dmem_pending);
     end
