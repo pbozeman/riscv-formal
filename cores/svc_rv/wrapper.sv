@@ -81,10 +81,9 @@ module rvfi_wrapper (
 
   (* keep *)`rvformal_rand_reg [31:0] dmem_rdata_any;
 
-  (* keep *)wire                      imem_arvalid;
-  (* keep *)wire               [31:0] imem_araddr;
+  (* keep *)wire                      imem_ren;
+  (* keep *)wire               [31:0] imem_raddr;
   (* keep *)wire               [31:0] imem_rdata;
-  (* keep *)wire                      imem_rvalid;
 
   (* keep *)wire                      dmem_ren;
   (* keep *)wire               [31:0] dmem_raddr;
@@ -169,10 +168,9 @@ module rvfi_wrapper (
       .clk  (clock),
       .rst_n(!reset),
 
-      .imem_arvalid(imem_arvalid),
-      .imem_araddr (imem_araddr),
-      .imem_rdata  (imem_rdata),
-      .imem_rvalid (imem_rvalid),
+      .imem_ren  (imem_ren),
+      .imem_raddr(imem_raddr),
+      .imem_rdata(imem_rdata),
 
       .dmem_ren  (dmem_ren),
       .dmem_raddr(dmem_raddr),
@@ -219,15 +217,14 @@ module rvfi_wrapper (
   // Map reads to immutable memory. Addresses wrap within the configured
   // word count by masking to the address width.
   //
-  // SRAM: Combinational read (0-cycle latency), imem_rvalid = imem_arvalid
-  // BRAM: Registered read (1-cycle latency), imem_rvalid = registered arvalid
+  // SRAM: Combinational read (0-cycle latency)
+  // BRAM: Registered read (1-cycle latency)
   //
   wire [IMEM_AW-1:0] imem_idx;
-  assign imem_idx = imem_araddr[IMEM_AW+1:2] & ((1 << IMEM_AW) - 1);
+  assign imem_idx = imem_raddr[IMEM_AW+1:2] & ((1 << IMEM_AW) - 1);
 
   if (`SVC_RV_MEM_TYPE == 1) begin : g_bram_timing
     reg [31:0] imem_rdata_reg;
-    reg imem_rvalid_reg;
 
     // Get stall signal (0 if not pipelined)
     wire stall = g_stall_model.stall_in;
@@ -235,23 +232,19 @@ module rvfi_wrapper (
     always @(posedge clock) begin
       if (reset) begin
         // This is what the svc_rv_soc_bram does at startup
-        imem_rdata_reg  <= 32'h00000013;
-        imem_rvalid_reg <= 1'b0;
+        imem_rdata_reg <= 32'h00000013;
       end else if (!stall) begin
         // Only advance when not stalled
-        imem_rvalid_reg <= imem_arvalid;
-        if (imem_arvalid) begin
+        if (imem_ren) begin
           imem_rdata_reg <= imem_array[imem_idx];
         end
       end
-      // When stalled, hold current rdata/rvalid
+      // When stalled, hold current rdata
     end
 
-    assign imem_rdata  = imem_rdata_reg;
-    assign imem_rvalid = imem_rvalid_reg;
+    assign imem_rdata = imem_rdata_reg;
   end else begin : g_sram_timing
-    assign imem_rdata  = imem_arvalid ? imem_array[imem_idx] : 32'hxxxxxxxx;
-    assign imem_rvalid = imem_arvalid;
+    assign imem_rdata = imem_ren ? imem_array[imem_idx] : 32'hxxxxxxxx;
   end
 
   //
