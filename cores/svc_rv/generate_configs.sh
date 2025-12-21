@@ -63,6 +63,8 @@ CONFIGS=(
   "sram_pc:1:0:0:0:0:0:0:0:0:1:0"
   "sram_ras_fwd_pc:1:1:1:0:1:1:1:0:0:1:0"
   "sram_ras_fwd_stall:1:1:1:0:1:1:1:0:0:0:1"
+  "sram_bpred_fwd_pc_stall:1:1:1:0:1:0:0:0:0:1:1"
+  "sram_ras_fwd_pc_stall:1:1:1:0:1:1:1:0:0:1:1"
 
   # BRAM variants (MEM_TYPE=1, PIPELINED=1)
   "bram:1:0:0:1:0:0:0:0:0:0:0"
@@ -75,6 +77,8 @@ CONFIGS=(
   "bram_pc:1:0:0:1:0:0:0:0:0:1:0"
   "bram_ras_fwd_pc:1:1:1:1:1:1:1:0:0:1:0"
   "bram_ras_fwd_stall:1:1:1:1:1:1:1:0:0:0:1"
+  "bram_bpred_fwd_pc_stall:1:1:1:1:1:0:0:0:0:1:1"
+  "bram_ras_fwd_pc_stall:1:1:1:1:1:1:1:0:0:1:1"
 
   # SRAM single-cycle (MEM_TYPE=0, PIPELINED=0)
   "sram_sc:0:0:0:0:0:0:0:0:0:0:0"
