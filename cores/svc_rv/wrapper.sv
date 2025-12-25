@@ -103,6 +103,10 @@ module rvfi_wrapper (
   (* keep *)wire                      rvfi_mem_valid;
   (* keep *)wire                      rvfi_mem_instr;
 
+  // Look-ahead interface for BRAM
+  (* keep *)wire               [31:0] lsu_la_addr;
+  (* keep *)wire                      lsu_la_en;
+
   //
   // Stall modeling for formal verification (pipelined configs with STALL enabled)
   //
@@ -174,6 +178,10 @@ module rvfi_wrapper (
       .dmem_wstrb(dmem_wstrb),
 
       .dmem_stall(g_stall_model.stall_in),
+      .dmem_la_hit(1'b1),
+
+      .lsu_la_addr(lsu_la_addr),
+      .lsu_la_en  (lsu_la_en),
 
       .ebreak(ebreak),
       .trap  (trap),
@@ -254,10 +262,15 @@ module rvfi_wrapper (
     // Get stall signal (0 if not pipelined)
     wire stall = g_stall_model.stall_in;
 
+    // BRAM read can be initiated by either:
+    // - lsu_la_en: Look-ahead from EX stage (for LA success path)
+    // - dmem_ren: Fallback from MEM stage (for LA failure path)
+    wire bram_ren = lsu_la_en || dmem_ren;
+
     always @(posedge clock) begin
       if (reset) begin
         dmem_rdata_reg <= 32'hxxxxxxxx;
-      end else if (dmem_ren && !stall) begin
+      end else if (bram_ren && !stall) begin
         // Data "arrives" when stall clears
         dmem_rdata_reg <= dmem_rdata_any;
       end
