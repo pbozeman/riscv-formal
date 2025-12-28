@@ -110,36 +110,80 @@ module rvfi_wrapper (
   // This models cache-like behavior where stalls are bounded.
   //
   if (`SVC_RV_PIPELINED == 1 && `SVC_RV_STALL == 1) begin : g_stall_model
-    (* keep *)`rvformal_rand_reg stall_in;
+    (* keep *)`rvformal_rand_reg       dmem_stall_in;
+    (* keep *)`rvformal_rand_reg       imem_stall_in;
 
     // Bound stall duration (keeps BMC tractable)
-    reg [1:0] stall_count;
-    always @(posedge clock) begin
-      if (reset) stall_count <= 0;
-      else if (stall_in)
-        stall_count <= (stall_count == 2'd2) ? 2'd2 : stall_count + 1;
-      else stall_count <= 0;
+    logic              [1:0] dmem_stall_count;
+    logic              [1:0] imem_stall_count;
+    logic              [1:0] any_stall_count;
+    logic                    imem_pending;
+    logic                    any_stall;
+
+    assign any_stall = dmem_stall_in || imem_stall_in;
+
+    always_ff @(posedge clock) begin
+      if (reset) begin
+        dmem_stall_count <= 0;
+        imem_stall_count <= 0;
+        any_stall_count  <= 0;
+        imem_pending     <= 1'b0;
+      end else begin
+        if (dmem_stall_in) begin
+          dmem_stall_count <= (dmem_stall_count == 2'd2) ? 2'd2 :
+              dmem_stall_count + 1;
+        end else begin
+          dmem_stall_count <= 0;
+        end
+
+        if (imem_stall_in) begin
+          imem_stall_count <= (imem_stall_count == 2'd2) ? 2'd2 :
+              imem_stall_count + 1;
+        end else begin
+          imem_stall_count <= 0;
+        end
+
+        if (any_stall) begin
+          any_stall_count <= (any_stall_count == 2'd2) ? 2'd2 :
+              any_stall_count + 1;
+        end else begin
+          any_stall_count <= 0;
+        end
+
+        if (imem_ren) begin
+          imem_pending <= 1'b1;
+        end else if (!imem_stall_in) begin
+          imem_pending <= 1'b0;
+        end
+      end
     end
 
     always_comb begin
-      assume (stall_count < 2 || !stall_in);
+      assume (dmem_stall_count < 2 || !dmem_stall_in);
+      assume (imem_stall_count < 2 || !imem_stall_in);
+      assume (any_stall_count < 2 || !any_stall);
+      assume (!imem_stall_in || imem_pending);
     end
 
     // Hold dmem_rdata stable during stall
-    reg [31:0] dmem_rdata_held;
-    always @(posedge clock) begin
-      if (reset) dmem_rdata_held <= 32'h0;
-      else if (dmem_ren && !stall_in) dmem_rdata_held <= dmem_rdata_any;
+    logic [31:0] dmem_rdata_held;
+    always_ff @(posedge clock) begin
+      if (reset) begin
+        dmem_rdata_held <= 32'h0;
+      end else if (dmem_ren && !dmem_stall_in) begin
+        dmem_rdata_held <= dmem_rdata_any;
+      end
     end
 
     always_comb begin
-      if (stall_in) begin
+      if (dmem_stall_in) begin
         assume (dmem_rdata_any == dmem_rdata_held);
       end
     end
   end else begin : g_stall_model
     // No stall injection - tie stall to 0
-    wire stall_in = 1'b0;
+    wire dmem_stall_in = 1'b0;
+    wire imem_stall_in = 1'b0;
   end
 
   svc_rv #(
@@ -173,8 +217,8 @@ module rvfi_wrapper (
       .dmem_wdata(dmem_wdata),
       .dmem_wstrb(dmem_wstrb),
 
-      .dmem_stall(g_stall_model.stall_in),
-      .imem_stall(1'b0),
+      .dmem_stall(g_stall_model.dmem_stall_in),
+      .imem_stall(g_stall_model.imem_stall_in),
 
       .ebreak(ebreak),
       .trap  (trap),
@@ -217,10 +261,10 @@ module rvfi_wrapper (
   assign imem_idx = imem_raddr[IMEM_AW+1:2] & ((1 << IMEM_AW) - 1);
 
   if (`SVC_RV_MEM_TYPE == 1) begin : g_bram_timing
-    reg [31:0] imem_rdata_reg;
+    reg  [31:0] imem_rdata_reg;
 
     // Get stall signal (0 if not pipelined)
-    wire stall = g_stall_model.stall_in;
+    wire        stall = g_stall_model.imem_stall_in;
 
     always @(posedge clock) begin
       if (reset) begin
@@ -250,10 +294,10 @@ module rvfi_wrapper (
   //   BRAM (MEM_TYPE=1): registered read (1-cycle latency)
   //
   if (`SVC_RV_MEM_TYPE == 1) begin : g_dmem_bram_timing
-    reg [31:0] dmem_rdata_reg;
+    reg  [31:0] dmem_rdata_reg;
 
     // Get stall signal (0 if not pipelined)
-    wire stall = g_stall_model.stall_in;
+    wire        stall = g_stall_model.dmem_stall_in;
 
     always @(posedge clock) begin
       if (reset) begin
