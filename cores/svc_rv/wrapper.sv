@@ -174,6 +174,7 @@ module rvfi_wrapper (
       .dmem_wstrb(dmem_wstrb),
 
       .dmem_stall(g_stall_model.stall_in),
+      .imem_stall(1'b0),
 
       .ebreak(ebreak),
       .trap  (trap),
