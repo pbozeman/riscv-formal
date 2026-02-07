@@ -222,7 +222,6 @@ module rvfi_wrapper (
 
       .ebreak    (ebreak),
       .trap      (trap),
-      .dcache_inv(),
 
       .rvfi_valid    (rvfi_valid),
       .rvfi_order    (rvfi_order),
