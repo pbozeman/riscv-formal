@@ -220,6 +220,9 @@ module rvfi_wrapper (
       .dmem_stall(g_stall_model.dmem_stall_in),
       .imem_stall(g_stall_model.imem_stall_in),
 
+      .cbo_inv_valid(),
+      .cbo_inv_addr (),
+
       .ebreak    (ebreak),
       .trap      (trap),
 
