@@ -224,6 +224,7 @@ module rvfi_wrapper (
       .cbo_inv_addr (),
 
       .meip(1'b0),
+      .mtip(1'b0),
 
       .ebreak    (ebreak),
       .trap      (trap),
