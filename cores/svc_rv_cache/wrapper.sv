@@ -1,5 +1,6 @@
 `include "svc.sv"
 `include "svc_unused.sv"
+`include "svc_unused.svh"
 
 //
 // Configuration via defines (can be overridden via +define+ in .sby files)
