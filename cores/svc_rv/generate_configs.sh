@@ -155,6 +155,7 @@ verilog_defaults -add -I@basedir@/../../rtl/fifo
 verilog_defaults -add -I@basedir@/../../rtl/rv
 verilog_defaults -add -I@basedir@/../../src/misc/rtl
 verilog_defaults -add -I@basedir@/../../src/mux/rtl
+verilog_defaults -add -I@basedir@/../../src/rv/rtl
 
 [defines]
 \`define RISCV_FORMAL_ALIGNED_MEM
