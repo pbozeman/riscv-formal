@@ -177,7 +177,6 @@ verilog_defaults -add -I@basedir@/../../src/rv/rtl
 [verilog-files]
 @basedir@/cores/@core@/config.sv
 @basedir@/cores/@core@/wrapper.sv
-@basedir@/../../rtl/rv/svc_rv.sv
 @basedir@/../../tb/rv/svc_rv_core_includes.svh
 
 [cover]
