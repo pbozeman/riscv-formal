@@ -1,5 +1,5 @@
 `include "svc.sv"
-`include "svc_unused.sv"
+`include "svc_unused.svh"
 
 //
 // Configuration via defines (can be overridden via +define+ in .sby files)
@@ -88,9 +88,11 @@ module rvfi_wrapper (
   localparam int IMEM_LOCALITY_LINES = `SVC_RV_FORMAL_IMEM_LOCALITY_LINES;
   localparam int DMEM_LOCALITY_LINES = `SVC_RV_FORMAL_DMEM_LOCALITY_LINES;
 
-  localparam logic [AXI_ADDR_WIDTH-1:0] IMEM_LIMIT = IMEM_LOCALITY_LINES * CACHE_LINE_BYTES;
-  localparam logic [AXI_ADDR_WIDTH-1:0] DMEM_BASE  = IMEM_LIMIT;
-  localparam logic [AXI_ADDR_WIDTH-1:0] DMEM_LIMIT = IMEM_LIMIT + (DMEM_LOCALITY_LINES * CACHE_LINE_BYTES);
+  localparam logic [AXI_ADDR_WIDTH-1:0] IMEM_LIMIT = IMEM_LOCALITY_LINES *
+      CACHE_LINE_BYTES;
+  localparam logic [AXI_ADDR_WIDTH-1:0] DMEM_BASE = IMEM_LIMIT;
+  localparam logic [AXI_ADDR_WIDTH-1:0] DMEM_LIMIT = IMEM_LIMIT +
+      (DMEM_LOCALITY_LINES * CACHE_LINE_BYTES);
 `endif
 
   //
