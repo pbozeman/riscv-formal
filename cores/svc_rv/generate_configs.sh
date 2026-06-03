@@ -153,6 +153,7 @@ verilog_defaults -add -I@basedir@/../../rtl
 verilog_defaults -add -I@basedir@/../../rtl/common
 verilog_defaults -add -I@basedir@/../../rtl/fifo
 verilog_defaults -add -I@basedir@/../../rtl/rv
+verilog_defaults -add -I@basedir@/../../src/fifo/rtl
 verilog_defaults -add -I@basedir@/../../src/misc/rtl
 verilog_defaults -add -I@basedir@/../../src/skidbuf/rtl
 
