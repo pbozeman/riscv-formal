@@ -143,6 +143,7 @@ verilog_defaults -add -I@basedir@/../../rtl/rv
 verilog_defaults -add -I@basedir@/../../src/fifo/rtl
 verilog_defaults -add -I@basedir@/../../src/misc/rtl
 verilog_defaults -add -I@basedir@/../../src/skidbuf/rtl
+verilog_defaults -add -I@basedir@/../../src/axi/rtl
 
 [defines]
 \`define RISCV_FORMAL_ALIGNED_MEM
@@ -165,8 +166,9 @@ verilog_defaults -add -I@basedir@/../../src/skidbuf/rtl
 @basedir@/cores/@core@/config.sv
 @basedir@/cores/@core@/wrapper.sv
 @basedir@/../../rtl/rv/svc_rv_soc_bram_cache.sv
-@basedir@/../../rtl/axi/svc_axi_mem.sv
+@basedir@/../../src/axi/rtl/svc_axi_mem.sv
 @basedir@/../../tb/rv/svc_rv_core_includes.svh
+
 
 [cover]
 always @* if (!reset) cover (channel[0].cnt_insns == 2);
